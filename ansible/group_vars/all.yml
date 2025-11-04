@@ -1,0 +1,17 @@
+ansible_user_name: ansible
+shared_home_storage: /mnt/nfs/home
+users: 
+  - alice
+  - brad
+  - jack 
+
+
+shared_storage: /mnt/nfs/
+shared_software_path: /mnt/nfs/software
+shared_software_user: user_software
+monitoring_user: monitoring
+monitoring_repo: https://github.com/Brad-Davy/slurm_comunicator.git
+python_version: 3.14
+apptainer_version: 1.4.3
+openmpi_version: 5.0.8
+
