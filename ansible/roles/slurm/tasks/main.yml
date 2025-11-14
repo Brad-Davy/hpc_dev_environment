@@ -1,0 +1,96 @@
+---
+- name: Ensure basic packages are installed
+  ansible.builtin.apt:
+    name:
+      - slurm-wlm
+      - slurmctld
+      - slurmdbd
+    state: present
+  become: yes
+
+- name: Create SLURM directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: slurm
+    group: slurm
+    mode: '0755'
+  loop:
+    - /var/spool/slurmctld
+    - /var/spool/slurmd
+    - /var/log/slurm
+  become: yes
+
+- name: Deploy slurm.conf
+  ansible.builtin.template:
+    src: slurm.conf.j2
+    dest: /etc/slurm/slurm.conf
+    owner: slurm
+    group: slurm
+    mode: '0755'
+  become: yes
+
+- name: Open SLURM ports
+  ansible.posix.firewalld:
+    port: "{{ item }}/tcp"
+    permanent: true
+    state: enabled
+  loop:
+    - 6817
+    - 6818
+    - 6819
+  become: yes
+
+- name: Assign ens5 to the trusted zone permanently
+  ansible.posix.firewalld:
+    interface: ens5
+    zone: trusted
+    permanent: true
+    state: enabled
+  become: yes
+
+- name: Reload firewalld
+  ansible.builtin.command: firewall-cmd --reload
+  become: yes
+
+- name: Start SLURM controller service
+  ansible.builtin.service:
+    name: slurmctld
+    state: started
+    enabled: yes
+  when: inventory_hostname == "login"
+  become: yes
+
+- name: Start SLURM database service
+  become: true
+  ansible.builtin.service:
+    name: slurmdbd
+    state: started
+    enabled: yes
+  when: inventory_hostname == "login"
+
+- name: Start SLURM compute node service
+  ansible.builtin.service:
+    name: slurmd
+    state: started
+    enabled: yes
+  when: inventory_hostname == "compute01" or inventory_hostname == "compute02"
+  become: yes
+
+- name: Restart munge
+  ansible.builtin.command: systemctl restart munge
+  become: yes
+
+- name: Restart slurmctld
+  ansible.builtin.command: systemctl restart slurmctld
+  when: inventory_hostname == "login"
+  become: yes
+
+- name: Restart slurmd
+  ansible.builtin.command: systemctl restart slurmd
+  when: inventory_hostname == "compute01" or inventory_hostname == "compute02"
+  become: yes
+
+
+
+

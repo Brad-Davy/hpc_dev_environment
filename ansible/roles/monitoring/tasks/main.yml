@@ -1,0 +1,75 @@
+--- 
+
+- name: Setup monitoring user
+  ansible.builtin.include_tasks: setup.yml
+
+- name: Setup the ssh requirements for git
+  ansible.builtin.include_tasks: ssh.yml
+    
+- name: Edit .bashrc file
+  ansible.builtin.blockinfile:
+    path: "{{ shared_home_storage  }}/{{ monitoring_user }}/.bashrc"
+    block: |
+      alias rcedit="vim $HOME/.bashrc"
+      alias rcsource="source $HOME/.bashrc"
+      alias c="clear"
+      PS1='\[\e[1;37m\](\h)\[\e[0m\]:\[\e[0;31m\](\u)\[\e[0m\]:\[\e[38;5;208m\]\w\[\e[0m\] \[\e[1;37m\]-> \[\e[0m\]'
+      # Enable color support for ls and other commands
+      if [ -x /usr/bin/dircolors ]; then
+          test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+      fi
+      alias ls='ls --color=auto'
+      alias ll='ls -alF'
+      alias la='ls -A'
+      alias l='ls -CF'
+      alias q="squeue -u $USER"
+      PS1='\[\e[1;37m\](\h)\[\e[0m\]:\[\e[0;31m\](\u)\[\e[0m\]:\[\e[38;5;208m\]\w\[\e[0m\] \[\e[1;37m\]-> \[\e[0m\]'
+      export MODULEPATH=/mnt/nfs/software/modules:$MODULEPATH
+  become: yes
+
+- name: Edit .bash_profile file
+  ansible.builtin.blockinfile:
+    path: "{{ shared_home_storage  }}/{{ monitoring_user  }}/.bash_profile"
+    block: |
+      if [ -f $HOME/.bashrc  ]; then
+          . $HOME/.bashrc
+      fi
+    create: yes
+  become: yes
+
+- name: Ensure monioring directory exists
+  ansible.builtin.file:
+    path: "/opt/monitoring"
+    state: directory
+    owner: "{{ monitoring_user  }}"
+    group: "{{ monitoring_user  }}"
+    mode: '0755'
+  become: yes
+
+- name: Clone monitoring repository
+  become: yes
+  ansible.builtin.git:
+    repo: "{{ monitoring_repo }}"
+    dest: /opt/monitoring/monitoring_repo
+    accept_hostkey: yes
+
+#- name: Set git config
+#  become: yes
+#  become_user: "{{ monitoring_user  }}"
+#  ansible.builtin.shell: |
+#    set -e
+#    git config --global user.email "bdavy@ocf.co.uk"
+#    git config --global user.name "Brad-Davy"
+
+
+- name: Set ownership for monitoring directory
+  ansible.builtin.file:
+    path: "/opt/monitoring"
+    owner: "{{ monitoring_user  }}"
+    group: "{{ monitoring_user  }}"
+    recurse: yes
+    state: directory
+  become: yes
+
+
+

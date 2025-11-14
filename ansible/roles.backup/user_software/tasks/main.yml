@@ -1,0 +1,55 @@
+---
+- name: Install build tools
+  ansible.builtin.package:
+    name: 
+      - make
+      - zlib1g-dev
+      - golang
+    state: present
+
+- name: Create software user
+  ansible.builtin.user:
+    name: "{{ shared_software_user  }}"
+    state: present
+    create_home: yes
+
+- name: Create software directory
+  ansible.builtin.file:
+    path: "{{  shared_software_path }}"
+    owner: "{{ shared_software_user  }}"
+    group: "{{ shared_software_user  }}"
+    mode: '0755'
+    state: directory 
+
+- name: Create software source directory
+  ansible.builtin.file:
+    path: "{{  shared_software_path }}/source"
+    owner: "{{ shared_software_user  }}"
+    group: "{{ shared_software_user  }}"
+    mode: '0755'
+    state: directory
+
+- name: Create software apps directory
+  ansible.builtin.file:
+    path: "{{  shared_software_path }}/apps"
+    owner: "{{ shared_software_user  }}"
+    group: "{{ shared_software_user  }}"
+    mode: '0755'
+    state: directory
+
+- name: Create software modules directory
+  ansible.builtin.file:
+    path: "{{  shared_software_path }}/modules"
+    owner: "{{ shared_software_user  }}"
+    group: "{{ shared_software_user  }}"
+    mode: '0755'
+    state: directory
+
+      #- name: Install and build Python
+      #ansible.builtin.include_tasks: python.yml
+
+- name: Install and build Apptainer
+  ansible.builtin.include_tasks: apptainer.yml
+
+#- name: Install and build OpenMPI
+#  ansible.builtin.include_tasks: openmpi.yml

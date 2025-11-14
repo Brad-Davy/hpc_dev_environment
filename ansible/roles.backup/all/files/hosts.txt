@@ -1,0 +1,3 @@
+172.31.5.0 hpc_dev_compute 
+172.31.1.116 hpc_dev_login 
+172.31.6.129 hpc_dev_storage 

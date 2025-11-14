@@ -1,0 +1,50 @@
+---
+- name: Ensure .ssh directory exists for monitoring user
+  ansible.builtin.file:
+    path: "{{ shared_storage }}/home/{{ monitoring_user }}/.ssh"
+    state: directory
+    owner: "{{ monitoring_user }}"
+    group: "{{ monitoring_user }}"
+    mode: '0700'
+
+- name: Ensure ssh-key in monitoring user .ssh
+  ansible.builtin.copy:
+    src: dev_aws_github
+    dest: "{{ shared_storage }}/home/{{ monitoring_user }}/.ssh/id_ed25519"
+    owner: "{{ monitoring_user }}"
+    group: "{{ monitoring_user }}"
+    mode: '0600'
+
+- name: Ensure ssh-key.pub in monitoring user .ssh
+  ansible.builtin.copy:
+    src: dev_aws_github.pub
+    dest: "{{ shared_storage }}/home/{{ monitoring_user }}/.ssh/id_ed25519.pub"
+    owner: "{{ monitoring_user }}"
+    group: "{{ monitoring_user }}"
+    mode: '0600'
+
+- name: Ensure /root/.ssh exists
+  ansible.builtin.file:
+    path: /root/.ssh
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Install private SSH key for root
+  ansible.builtin.copy:
+    src: dev_aws_github              
+    dest: /root/.ssh/id_ed25519
+    owner: root
+    group: root
+    mode: '0600'
+    backup: no
+
+- name: Install public SSH key for root
+  ansible.builtin.copy:
+    src: dev_aws_github.pub           
+    dest: /root/.ssh/id_ed25519.pub
+    owner: root
+    group: root
+    mode: '0644'
+    backup: no

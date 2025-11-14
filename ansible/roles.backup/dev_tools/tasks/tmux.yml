@@ -1,0 +1,14 @@
+---
+- name: Insatll core developer tools
+  ansible.builtin.package:
+    name:
+      - tmux
+    state: present
+
+- name: Deploy tmux configuration
+  become: yes
+  ansible.builtin.copy:
+    src: tmux.conf
+    dest: "{{  shared_home_storage }}/{{ monitoring_user }}/.tmux.conf"
+    mode: '0644'
+

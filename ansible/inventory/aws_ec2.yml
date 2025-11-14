@@ -1,0 +1,22 @@
+plugin: amazon.aws.aws_ec2
+regions:
+  - us-west-2
+
+hostnames:
+  - tag:Name
+  - private-ip-address
+  - public-ip-address
+
+compose:
+  ansible_host: public_ip_address
+  ansible_user: ubuntu
+  ansible_python_interpreter: /usr/bin/python3
+  private_ip: private_ip_address
+
+groups:
+  
+  slurm_cluster: "'login' in (tags.Name | default('')) or 'compute' in (tags.Name | default(''))"
+  monitoring_node: "'login' in (tags.Name | default(''))"
+  shared_storage_clients: "'login' in (tags.Name | default('')) or 'compute' in (tags.Name | default(''))"
+  shared_storage_server: "'storage' in (tags.Name | default(''))"
+  shared_software_host: "'login' in (tags.Name | default(''))"

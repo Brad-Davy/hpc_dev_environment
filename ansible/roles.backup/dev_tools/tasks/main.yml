@@ -1,0 +1,6 @@
+---
+- name: Install and configure neovim
+  ansible.builtin.include_tasks: neovim.yml
+
+- name: Install and configure tmux
+  ansible.builtin.include_tasks: tmux.yml

@@ -1,0 +1,81 @@
+---
+- name: Create python directory in software/apps
+  ansible.builtin.file:
+    path: "{{  shared_software_path }}/apps/python/{{ python_version  }}"
+    owner: "{{ shared_software_user  }}"
+    group: "{{ shared_software_user  }}"
+    mode: '0755'
+    state: directory 
+
+- name: Clone Python GitHub repo
+  ansible.builtin.shell: |
+    set -e
+    cd {{ shared_software_path }}/source/
+    git clone https://github.com/python/cpython.git python/{{  python_version }}
+    cd python/{{  python_version }}
+    git fetch --all
+    git checkout {{ python_version }}
+  args:
+    creates: "{{ shared_software_path }}/source/python/{{  python_version }}"
+  become: yes
+
+- name: Set ownership for Python source code
+  ansible.builtin.file:
+    path: "{{ shared_software_path }}/source/python/{{  python_version }}"
+    owner: "{{ shared_software_user }}"
+    group: "{{ shared_software_user }}"
+    recurse: yes
+    state: directory
+
+- name: Compile Python from source
+  ansible.builtin.shell: |
+    set -e
+    cd {{ shared_software_path }}/source/python/{{  python_version }}
+    if [ -f Makefile ]; then
+      make clean
+    fi
+    ./configure --prefix={{ shared_software_path }}/apps/python/{{  python_version }} --with-ensurepip=install 
+    make -j $(nproc)
+    make install
+  args:
+    creates: "{{ shared_software_path }}/apps/python/{{ python_version }}/bin"
+  become: yes
+
+- name: Set ownership of Python binaries
+  ansible.builtin.file:
+    path: "{{ shared_software_path }}/apps/python/{{  python_version }}"
+    owner: "{{ shared_software_user  }}"
+    group: "{{ shared_software_user  }}"
+    recurse: yes
+    state: directory
+
+- name: Create Python module directory
+  ansible.builtin.file:
+    path: "{{ shared_software_path }}/modules/python/"
+    state: directory
+    owner: "{{ shared_software_user }}"
+    group: "{{ shared_software_user }}"
+    mode: '0755'
+
+- name: Create Python module file
+  ansible.builtin.file:
+    path: "{{ shared_software_path }}/modules/python/{{ python_version }}.lua"
+    state: touch
+    owner: "{{ shared_software_user }}"
+    group: "{{ shared_software_user }}"
+    mode: '0755'
+
+- name: Edit Python module file
+  ansible.builtin.copy:
+    dest: "{{ shared_software_path }}/modules/python/{{ python_version }}.lua"
+    content: |
+      -- Lua module file for Python {{ python_version }}
+      prepend_path("PATH", "{{ shared_software_path }}/apps/python/bin")
+      prepend_path("LD_LIBRARY_PATH", "{{ shared_software_path }}/apps/python/lib")
+      prepend_path("PYTHONPATH", "{{ shared_software_path }}/apps/python/lib/python{{ python_version | regex_replace('\\.','') }}/site-packages")
+
+- name: Set ownership for Python module file
+  ansible.builtin.file:
+    path: "{{ shared_software_path }}/modules/python/{{ python_version }}.lua"
+    owner: "{{ shared_software_user }}"
+    group: "{{ shared_software_user }}"

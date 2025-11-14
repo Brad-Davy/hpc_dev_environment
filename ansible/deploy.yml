@@ -1,0 +1,41 @@
+---
+- name: Apply necessary roles to all hosts
+  hosts: all
+  become: yes
+  roles:
+    - base
+
+- name: Set NFS server on storage
+  hosts: shared_storage_server
+  become: yes
+  roles:
+    - nfs_server
+
+- name: Set up shared storage
+  hosts: shared_storage_clients
+  become: yes
+  roles:
+    - nfs_client
+
+- name: Set up everything needed for Slurm
+  hosts: slurm_cluster
+  become: yes
+  roles:
+    - munge
+    - slurm
+    - users
+
+- name: Set up monitoring
+  hosts: monitoring_node
+  become: yes
+  roles:
+    - monitoring
+    - dev_tools
+
+- name: Set up shared software
+  hosts: shared_software_host
+  become: yes
+  roles:
+    - lmod
+    #- user_software
+

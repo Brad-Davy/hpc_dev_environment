@@ -1,0 +1,7 @@
+---
+- name: Install lmod
+  ansible.builtin.package:
+    name: lmod
+    state: present
+
+
