@@ -2,3 +2,5 @@ setup.sh
 terraform/.terraform/*
 ansible/roles/master-worker-ssh/files/*
 terraform/env
+env/
+ansible/roles/monitoring/files/
